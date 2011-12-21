@@ -1,0 +1,3 @@
+GLOBAL_INT = 42
+GLOBAL_BOOL = true
+GLOBAL_STR = 'A compile-time string that should never change'
