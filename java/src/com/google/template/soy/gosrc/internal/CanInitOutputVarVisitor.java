@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.google.template.soy.javasrc.internal;
+package com.google.template.soy.gosrc.internal;
 
 import com.google.inject.Inject;
-import com.google.template.soy.javasrc.SoyJavaSrcOptions;
-import com.google.template.soy.javasrc.SoyJavaSrcOptions.CodeStyle;
+import com.google.template.soy.gosrc.SoyGoSrcOptions;
+import com.google.template.soy.gosrc.SoyGoSrcOptions.CodeStyle;
 import com.google.template.soy.soytree.AbstractReturningSoyNodeVisitor;
 import com.google.template.soy.soytree.CallNode;
 import com.google.template.soy.soytree.SoyNode;
@@ -34,47 +34,47 @@ import com.google.template.soy.soytree.SoyNode;
 class CanInitOutputVarVisitor extends AbstractReturningSoyNodeVisitor<Boolean> {
 
 
-  /** The options for generating Java source code. */
-  private final SoyJavaSrcOptions javaSrcOptions;
+  /** The options for generating Go source code. */
+  private final SoyGoSrcOptions goSrcOptions;
 
-  /** The IsComputableAsJavaExprsVisitor used by this instance (when needed). */
-  private final IsComputableAsJavaExprsVisitor isComputableAsJavaExprsVisitor;
+  /** The IsComputableAsGoExprsVisitor used by this instance (when needed). */
+  private final IsComputableAsGoExprsVisitor computableAsGoExprsVisitor;
 
 
   /**
-   * @param javaSrcOptions The options for generating Java source code.
-   * @param computableAsJavaExprsVisitor The IsComputableAsJavaExprsVisitor used by this instance
+   * @param goSrcOptions The options for generating Go source code.
+   * @param computableAsGoExprsVisitor The IsComputableAsGoExprsVisitor used by this instance
    *     (when needed).
    */
   @Inject
-  public CanInitOutputVarVisitor(SoyJavaSrcOptions javaSrcOptions,
-                                 IsComputableAsJavaExprsVisitor computableAsJavaExprsVisitor) {
-    this.javaSrcOptions = javaSrcOptions;
-    this.isComputableAsJavaExprsVisitor = computableAsJavaExprsVisitor;
+  public CanInitOutputVarVisitor(SoyGoSrcOptions goSrcOptions,
+                                 IsComputableAsGoExprsVisitor computableAsGoExprsVisitor) {
+    this.goSrcOptions = goSrcOptions;
+    this.computableAsGoExprsVisitor = computableAsGoExprsVisitor;
   }
 
 
   // -----------------------------------------------------------------------------------------------
-  // Implementations for specific nodes.
+  // Implementations for concrete classes.
 
 
   @Override protected Boolean visitCallNode(CallNode node) {
-    // If we're generating code in the 'concat' style, then the call is a Java expression that
+    // If we're generating code in the 'concat' style, then the call is a Go expression that
     // returns its output as a string. However, if we're generating code in the 'stringbuilder'
     // style, then the call is a full statement that returns no value (instead, the output is
     // directly appended to the StringBuilder we pass to the callee).
-    return javaSrcOptions.getCodeStyle() == CodeStyle.CONCAT;
+    return goSrcOptions.getCodeStyle() == CodeStyle.CONCAT;
   }
 
 
   // -----------------------------------------------------------------------------------------------
-  // Fallback implementation.
+  // Implementations for interfaces.
 
 
   @Override protected Boolean visitSoyNode(SoyNode node) {
     // For the vast majority of nodes, the return value of this visitor should be the same as the
-    // return value of IsComputableAsJavaExprsVisitor.
-    return isComputableAsJavaExprsVisitor.exec(node);
+    // return value of IsComputableAsGoExprsVisitor.
+    return computableAsGoExprsVisitor.exec(node);
   }
 
 }

@@ -19,6 +19,9 @@ package com.google.template.soy.basicdirectives;
 import com.google.common.collect.ImmutableSet;
 import com.google.template.soy.data.SoyData;
 import com.google.template.soy.data.restricted.StringData;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcPrintDirective;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
 import com.google.template.soy.javasrc.restricted.SoyJavaSrcPrintDirective;
@@ -39,7 +42,7 @@ import java.util.Set;
  *
  */
 public abstract class BasicEscapeDirective extends SoyAbstractTofuPrintDirective
-    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective {
+    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective, SoyGoSrcPrintDirective {
 
 
   /**
@@ -283,6 +286,17 @@ public abstract class BasicEscapeDirective extends SoyAbstractTofuPrintDirective
   public JsExpr applyForJsSrc(JsExpr value, List<JsExpr> args) {
     return new JsExpr(
         "soy.$$" + name.substring(1) + "(" + value.getText() + ")", Integer.MAX_VALUE);
+  }
+
+
+  @Override
+  public GoExpr applyForGoSrc(GoExpr value, List<GoExpr> args) {
+    return new GoExpr(
+        GoCodeUtils.genNewStringData(
+            GoCodeUtils.genFunctionCall(
+                GoCodeUtils.UTILS_LIB + "." + GoCodeUtils.publicize(name.substring(1)),
+                GoCodeUtils.genMaybeCast(value, SoyData.class))),
+        StringData.class, Integer.MAX_VALUE);
   }
 
 }

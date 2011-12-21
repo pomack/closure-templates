@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.template.soy.data.SoyData;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcPrintDirective;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
 import com.google.template.soy.javasrc.restricted.SoyJavaSrcPrintDirective;
 import com.google.template.soy.jssrc.restricted.JsExpr;
@@ -36,7 +38,7 @@ import java.util.Set;
  */
 @Singleton
 public class NoAutoescapeDirective extends SoyAbstractTofuPrintDirective
-    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective {
+    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective, SoyGoSrcPrintDirective {
 
 
   public static final String NAME = "|noAutoescape";
@@ -72,6 +74,11 @@ public class NoAutoescapeDirective extends SoyAbstractTofuPrintDirective
 
 
   @Override public JavaExpr applyForJavaSrc(JavaExpr value, List<JavaExpr> args) {
+    return value;
+  }
+
+
+  @Override public GoExpr applyForGoSrc(GoExpr value, List<GoExpr> args) {
     return value;
   }
 

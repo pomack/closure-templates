@@ -22,6 +22,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.template.soy.data.SoyData;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcFunction;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcFunctionUtils;
 import com.google.template.soy.internal.i18n.BidiUtils;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
@@ -42,7 +46,7 @@ import java.util.Set;
  */
 @Singleton
 class BidiTextDirFunction extends SoyAbstractTofuFunction
-    implements SoyJsSrcFunction, SoyJavaSrcFunction {
+    implements SoyJsSrcFunction, SoyJavaSrcFunction, SoyGoSrcFunction {
 
 
   @Inject
@@ -92,6 +96,20 @@ class BidiTextDirFunction extends SoyAbstractTofuFunction
                 JavaCodeUtils.genCoerceString(text),
                 isHtml != null ? JavaCodeUtils.genCoerceBoolean(isHtml) : "false") +
             ".ord"));
+  }
+
+
+  @Override public GoExpr computeForGoSrc(List<GoExpr> args) {
+    GoExpr text = args.get(0);
+    GoExpr isHtml = (args.size() == 2) ? args.get(1) : null;
+
+    return SoyGoSrcFunctionUtils.toIntegerGoExpr(
+        GoCodeUtils.genNewIntegerData(
+            GoCodeUtils.genFunctionCall(
+                GoCodeUtils.UTILS_LIB + ".BidiEstimateDirection",
+                GoCodeUtils.genCoerceString(text),
+                isHtml != null ? GoCodeUtils.genCoerceBoolean(isHtml) : "false") +
+            ".Ord"));
   }
 
 }

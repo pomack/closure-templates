@@ -16,6 +16,7 @@
 
 package com.google.template.soy.basicfunctions;
 
+import static com.google.template.soy.gosrc.restricted.SoyGoSrcFunctionUtils.toNumberGoExpr;
 import static com.google.template.soy.javasrc.restricted.SoyJavaSrcFunctionUtils.toNumberJavaExpr;
 import static com.google.template.soy.shared.restricted.SoyJavaRuntimeFunctionUtils.toSoyData;
 
@@ -27,6 +28,9 @@ import com.google.template.soy.data.SoyData;
 import com.google.template.soy.data.restricted.IntegerData;
 import com.google.template.soy.data.restricted.NumberData;
 import com.google.template.soy.exprtree.Operator;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcFunction;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
 import com.google.template.soy.javasrc.restricted.SoyJavaSrcFunction;
@@ -48,7 +52,7 @@ import java.util.Set;
 @Singleton
 @SoyPureFunction
 class RoundFunction extends SoyAbstractTofuFunction
-    implements SoyJsSrcFunction, SoyJavaSrcFunction {
+    implements SoyJsSrcFunction, SoyJavaSrcFunction, SoyGoSrcFunction {
 
 
   @Inject
@@ -147,6 +151,23 @@ class RoundFunction extends SoyAbstractTofuFunction
         JavaCodeUtils.UTILS_LIB + ".$$round",
         JavaCodeUtils.genMaybeCast(value, NumberData.class),
         numDigitsAfterPtExprText));
+  }
+
+
+  @Override public GoExpr computeForGoSrc(List<GoExpr> args) {
+    GoExpr value = args.get(0);
+    GoExpr numDigitsAfterPt = (args.size() == 2) ? args.get(1) : null;
+    
+    if (numDigitsAfterPt == null) {
+    	return toNumberGoExpr(GoCodeUtils.genFunctionCall(
+          GoCodeUtils.UTILS_LIB + ".Round",
+          GoCodeUtils.genMaybeCast(value, NumberData.class)));
+    }
+
+    return toNumberGoExpr(GoCodeUtils.genFunctionCall(
+        GoCodeUtils.UTILS_LIB + ".Round2",
+        GoCodeUtils.genMaybeCast(value, NumberData.class),
+        GoCodeUtils.genMaybeCast(numDigitsAfterPt, IntegerData.class)));
   }
 
 }

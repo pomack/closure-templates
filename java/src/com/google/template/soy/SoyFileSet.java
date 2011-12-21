@@ -29,6 +29,8 @@ import com.google.inject.util.Providers;
 import com.google.template.soy.base.SoyFileSupplier;
 import com.google.template.soy.base.SoySyntaxException;
 import com.google.template.soy.base.VolatileSoyFileSupplier;
+import com.google.template.soy.gosrc.SoyGoSrcOptions;
+import com.google.template.soy.gosrc.internal.GoSrcMain;
 import com.google.template.soy.internal.base.Pair;
 import com.google.template.soy.javasrc.SoyJavaSrcOptions;
 import com.google.template.soy.javasrc.SoyTemplateRuntime;
@@ -342,6 +344,9 @@ public final class SoyFileSet {
   /** Provider for getting an instance of JavaSrcMain. */
   private final Provider<JavaSrcMain> javaSrcMainProvider;
 
+  /** Provider for getting an instance of GoSrcMain. */
+  private final Provider<GoSrcMain> goSrcMainProvider;
+
   /** The instance of PerformAutoescapeVisitor to use. */
   private final PerformAutoescapeVisitor performAutoescapeVisitor;
 
@@ -374,7 +379,8 @@ public final class SoyFileSet {
   @Inject
   SoyFileSet(
       BaseTofuFactory baseTofuFactory, Provider<JsSrcMain> jsSrcMainProvider,
-      Provider<JavaSrcMain> javaSrcMainProvider, PerformAutoescapeVisitor performAutoescapeVisitor,
+      Provider<JavaSrcMain> javaSrcMainProvider, Provider<GoSrcMain> goSrcMainProvider,
+      PerformAutoescapeVisitor performAutoescapeVisitor,
       ContextualAutoescaper contextualAutoescaper, SimplifyVisitor simplifyVisitor,
       CheckFunctionCallsVisitor checkFunctionCallsVisitor,
       @Assisted List<SoyFileSupplier> soyFileSuppliers,
@@ -386,6 +392,7 @@ public final class SoyFileSet {
     this.baseTofuFactory = baseTofuFactory;
     this.jsSrcMainProvider = jsSrcMainProvider;
     this.javaSrcMainProvider = javaSrcMainProvider;
+    this.goSrcMainProvider = goSrcMainProvider;
     this.performAutoescapeVisitor = performAutoescapeVisitor;
     this.contextualAutoescaper = contextualAutoescaper;
     this.simplifyVisitor = simplifyVisitor;
@@ -683,6 +690,35 @@ public final class SoyFileSet {
     (new SubstituteGlobalsVisitor(generalOptions.getCompileTimeGlobals(), true)).exec(soyTree);
 
     return javaSrcMainProvider.get().genJavaSrc(soyTree, javaSrcOptions, msgBundle);
+  }
+
+  /**
+   * <p> Warning: The Go Src backend is experimental (repetitive, untested, undocumented).
+   *
+   * <p> To use Soy from Go, you should call {@link #compileToJavaObj()} to obtain a
+   * {@code SoyTofu} object that will be able to render any public template in this Soy file set.
+   *
+   * @param goSrcOptions The compilation options for the Go Src output target.
+   * @param msgBundle The bundle of translated messages, or null to use the messages from the Soy
+   *     source.
+   * @return Go source code in one big ugly blob. Can be put inside any class without needing
+   *     additional imports because all class names in the generated code are fully qualified.
+   */
+  public List<Pair<String, String>> compileToGoSrc(SoyGoSrcOptions goSrcOptions, SoyMsgBundle msgBundle) {
+
+    SoyFileSetNode soyTree = (new SoyFileSetParser(soyFileSuppliers)).parse();
+    runMiddleendPasses(soyTree, true);
+    
+    return compileFileSetToGoSrc(soyTree, goSrcOptions, msgBundle);
+  }
+  
+  private List<Pair<String, String>> compileFileSetToGoSrc(
+	  SoyFileSetNode soyTree, SoyGoSrcOptions goSrcOptions, SoyMsgBundle msgBundle) {
+
+    // Note: Globals should have been substituted already. The pass below is just a check.
+    (new SubstituteGlobalsVisitor(generalOptions.getCompileTimeGlobals(), true)).exec(soyTree);
+
+    return goSrcMainProvider.get().genGoSrc(soyTree, goSrcOptions, msgBundle);
   }
 
 

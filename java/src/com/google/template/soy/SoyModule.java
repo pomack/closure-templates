@@ -23,6 +23,7 @@ import com.google.template.soy.basicdirectives.BasicDirectivesModule;
 import com.google.template.soy.basicfunctions.BasicFunctionsModule;
 import com.google.template.soy.bididirectives.BidiDirectivesModule;
 import com.google.template.soy.bidifunctions.BidiFunctionsModule;
+import com.google.template.soy.gosrc.internal.GoSrcModule;
 import com.google.template.soy.javasrc.internal.JavaSrcModule;
 import com.google.template.soy.jssrc.internal.JsSrcModule;
 import com.google.template.soy.parsepasses.CheckFunctionCallsVisitor;
@@ -46,6 +47,7 @@ public class SoyModule extends AbstractModule {
     install(new TofuModule());
     install(new JsSrcModule());
     install(new JavaSrcModule());
+    install(new GoSrcModule());
 
     // Bindings for when explicit dependencies are required.
     bind(CheckFunctionCallsVisitor.class);

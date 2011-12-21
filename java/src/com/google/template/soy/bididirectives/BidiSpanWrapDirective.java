@@ -23,6 +23,10 @@ import com.google.inject.Singleton;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SanitizedContentOperator;
 import com.google.template.soy.data.SoyData;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcFunctionUtils;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcPrintDirective;
 import com.google.template.soy.internal.i18n.BidiGlobalDir;
 import com.google.template.soy.internal.i18n.SoyBidiUtils;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
@@ -45,7 +49,7 @@ import java.util.Set;
  */
 @Singleton
 public class BidiSpanWrapDirective extends SoyAbstractTofuPrintDirective
-    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective, SanitizedContentOperator {
+    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective, SoyGoSrcPrintDirective, SanitizedContentOperator {
 
 
   /** Provider for the current bidi global directionality. */
@@ -100,6 +104,17 @@ public class BidiSpanWrapDirective extends SoyAbstractTofuPrintDirective
             JavaCodeUtils.genFunctionCall(
                 bidiFunctionName,
                 JavaCodeUtils.genCoerceString(value),
+                "true")));
+  }
+
+
+  @Override public GoExpr applyForGoSrc(GoExpr value, List<GoExpr> args) {
+    return SoyGoSrcFunctionUtils.toStringGoExpr(
+        GoCodeUtils.genNewStringData(
+            GoCodeUtils.genFunctionCall(
+                GoCodeUtils.UTILS_LIB + ".BidiSpanWrap",
+                bidiGlobalDirProvider.get().getCodeSnippet(),
+                GoCodeUtils.genCoerceString(value),
                 "true")));
   }
 

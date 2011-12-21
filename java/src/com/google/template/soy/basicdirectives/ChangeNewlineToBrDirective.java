@@ -16,12 +16,16 @@
 
 package com.google.template.soy.basicdirectives;
 
+import static com.google.template.soy.gosrc.restricted.GoCodeUtils.genCoerceString;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SanitizedContentOperator;
 import com.google.template.soy.data.SoyData;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcPrintDirective;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
 import com.google.template.soy.javasrc.restricted.SoyJavaSrcPrintDirective;
@@ -40,7 +44,7 @@ import java.util.regex.Pattern;
  */
 @Singleton
 public class ChangeNewlineToBrDirective extends SoyAbstractTofuPrintDirective
-    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective, SanitizedContentOperator {
+    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective, SoyGoSrcPrintDirective, SanitizedContentOperator {
 
 
   private static final Pattern NEWLINE_PATTERN = Pattern.compile("\\r\\n|\\r|\\n");
@@ -79,6 +83,14 @@ public class ChangeNewlineToBrDirective extends SoyAbstractTofuPrintDirective
     return new JavaExpr(
         JavaCodeUtils.genFunctionCall(
             JavaCodeUtils.UTILS_LIB + ".$$changeNewlineToBr", value.getText()),
+        String.class, Integer.MAX_VALUE);
+  }
+
+
+  @Override public GoExpr applyForGoSrc(GoExpr str, List<GoExpr> args) {
+    return new GoExpr(
+        GoCodeUtils.genFunctionCall(GoCodeUtils.UTILS_LIB + ".ChangeNewlineToBr",
+            genCoerceString(str)),
         String.class, Integer.MAX_VALUE);
   }
 

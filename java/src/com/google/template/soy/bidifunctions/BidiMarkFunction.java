@@ -16,6 +16,7 @@
 
 package com.google.template.soy.bidifunctions;
 
+import static com.google.template.soy.gosrc.restricted.SoyGoSrcFunctionUtils.toStringGoExpr;
 import static com.google.template.soy.javasrc.restricted.SoyJavaSrcFunctionUtils.toStringJavaExpr;
 import static com.google.template.soy.shared.restricted.SoyJavaRuntimeFunctionUtils.toSoyData;
 
@@ -25,6 +26,9 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.template.soy.data.SoyData;
 import com.google.template.soy.exprtree.Operator;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcFunction;
 import com.google.template.soy.internal.i18n.BidiGlobalDir;
 import com.google.template.soy.internal.i18n.SoyBidiUtils;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
@@ -45,7 +49,7 @@ import java.util.Set;
  */
 @Singleton
 class BidiMarkFunction extends SoyAbstractTofuFunction
-    implements SoyJsSrcFunction, SoyJavaSrcFunction {
+    implements SoyJsSrcFunction, SoyJavaSrcFunction, SoyGoSrcFunction {
 
 
   /** Provider for the current bidi global directionality. */
@@ -104,6 +108,19 @@ class BidiMarkFunction extends SoyAbstractTofuFunction
         bidiGlobalDir.getCodeSnippet() + ").mark";
     return toStringJavaExpr(JavaCodeUtils.genNewStringData(
         JavaCodeUtils.genFunctionCall(bidiFunctionName)));
+  }
+
+
+  @Override public GoExpr computeForGoSrc(List<GoExpr> args) {
+
+    BidiGlobalDir bidiGlobalDir = bidiGlobalDirProvider.get();
+    if (bidiGlobalDir.isStaticValue()) {
+      return toStringGoExpr(GoCodeUtils.genNewStringData(
+            (bidiGlobalDir.getStaticValue() < 0) ? "\"\\u200F\"" /*RLM*/ : "\"\\u200E\"" /*LRM*/));
+    }
+
+    return toStringGoExpr(GoCodeUtils.genNewStringData(
+        GoCodeUtils.genFunctionCall(GoCodeUtils.UTILS_LIB + "BidiMark", bidiGlobalDir.getCodeSnippet())));
   }
 
 }

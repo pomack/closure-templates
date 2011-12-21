@@ -22,6 +22,10 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyData;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcFunction;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcFunctionUtils;
 import com.google.template.soy.internal.i18n.BidiGlobalDir;
 import com.google.template.soy.internal.i18n.SoyBidiUtils;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
@@ -46,7 +50,7 @@ import java.util.Set;
  */
 @Singleton
 class BidiDirAttrFunction extends SoyAbstractTofuFunction
-    implements SoyJsSrcFunction, SoyJavaSrcFunction {
+    implements SoyJsSrcFunction, SoyJavaSrcFunction, SoyGoSrcFunction {
 
 
   /** Provider for the current bidi global directionality. */
@@ -109,6 +113,21 @@ class BidiDirAttrFunction extends SoyAbstractTofuFunction
                 bidiFunctionName,
                 JavaCodeUtils.genCoerceString(text),
                 isHtml != null ? JavaCodeUtils.genCoerceBoolean(isHtml) : "false"),
+            SanitizedContent.ContentKind.HTML_ATTRIBUTE));
+  }
+
+
+  @Override public GoExpr computeForGoSrc(List<GoExpr> args) {
+    GoExpr text = args.get(0);
+    GoExpr isHtml = (args.size() == 2) ? args.get(1) : null;
+
+    return SoyGoSrcFunctionUtils.toStringGoExpr(
+        GoCodeUtils.genNewSanitizedContent(
+            GoCodeUtils.genFunctionCall(
+                GoCodeUtils.UTILS_LIB + ".BidiDirAttr",
+                bidiGlobalDirProvider.get().getCodeSnippet(),
+                GoCodeUtils.genCoerceString(text),
+                isHtml != null ? GoCodeUtils.genCoerceBoolean(isHtml) : "false"),
             SanitizedContent.ContentKind.HTML_ATTRIBUTE));
   }
 

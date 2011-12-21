@@ -21,6 +21,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyData;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcPrintDirective;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
 import com.google.template.soy.javasrc.restricted.SoyJavaSrcPrintDirective;
@@ -39,7 +42,7 @@ import java.util.Set;
  */
 @Singleton
 public class EscapeHtmlDirective extends SoyAbstractTofuPrintDirective
-    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective {
+    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective, SoyGoSrcPrintDirective {
 
 
   public static final String NAME = "|escapeHtml";
@@ -83,6 +86,13 @@ public class EscapeHtmlDirective extends SoyAbstractTofuPrintDirective
   @Override public JavaExpr applyForJavaSrc(JavaExpr value, List<JavaExpr> args) {
     return new JavaExpr(
         JavaCodeUtils.genFunctionCall(JavaCodeUtils.UTILS_LIB + ".$$escapeHtml", value.getText()),
+        String.class, Integer.MAX_VALUE);
+  }
+
+
+  @Override public GoExpr applyForGoSrc(GoExpr value, List<GoExpr> args) {
+    return new GoExpr(
+        GoCodeUtils.genFunctionCall(GoCodeUtils.UTILS_LIB + ".EscapeHtml", value.getText()),
         String.class, Integer.MAX_VALUE);
   }
 

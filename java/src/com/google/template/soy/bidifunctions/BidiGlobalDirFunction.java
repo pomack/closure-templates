@@ -16,6 +16,7 @@
 
 package com.google.template.soy.bidifunctions;
 
+import static com.google.template.soy.gosrc.restricted.SoyGoSrcFunctionUtils.toIntegerGoExpr;
 import static com.google.template.soy.javasrc.restricted.SoyJavaSrcFunctionUtils.toIntegerJavaExpr;
 import static com.google.template.soy.shared.restricted.SoyJavaRuntimeFunctionUtils.toSoyData;
 
@@ -25,6 +26,9 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.template.soy.data.SoyData;
 import com.google.template.soy.exprtree.Operator;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcFunction;
 import com.google.template.soy.internal.i18n.BidiGlobalDir;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
@@ -43,7 +47,7 @@ import java.util.Set;
  */
 @Singleton
 class BidiGlobalDirFunction extends SoyAbstractTofuFunction
-    implements SoyJsSrcFunction, SoyJavaSrcFunction {
+    implements SoyJsSrcFunction, SoyJavaSrcFunction, SoyGoSrcFunction {
 
 
   /** Provider for the current bidi global directionality. */
@@ -87,6 +91,12 @@ class BidiGlobalDirFunction extends SoyAbstractTofuFunction
   @Override public JavaExpr computeForJavaSrc(List<JavaExpr> args) {
 
     return toIntegerJavaExpr(JavaCodeUtils.genNewIntegerData(
+        bidiGlobalDirProvider.get().getCodeSnippet()));
+  }
+
+  @Override public GoExpr computeForGoSrc(List<GoExpr> args) {
+
+    return toIntegerGoExpr(GoCodeUtils.genNewIntegerData(
         bidiGlobalDirProvider.get().getCodeSnippet()));
   }
 

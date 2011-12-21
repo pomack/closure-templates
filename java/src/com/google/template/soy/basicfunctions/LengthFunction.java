@@ -16,6 +16,7 @@
 
 package com.google.template.soy.basicfunctions;
 
+import static com.google.template.soy.gosrc.restricted.SoyGoSrcFunctionUtils.toIntegerGoExpr;
 import static com.google.template.soy.javasrc.restricted.SoyJavaSrcFunctionUtils.toIntegerJavaExpr;
 import static com.google.template.soy.shared.restricted.SoyJavaRuntimeFunctionUtils.toSoyData;
 
@@ -24,6 +25,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.template.soy.data.SoyData;
 import com.google.template.soy.data.SoyListData;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcFunction;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
 import com.google.template.soy.javasrc.restricted.SoyJavaSrcFunction;
@@ -43,7 +47,7 @@ import java.util.Set;
 @Singleton
 @SoyPureFunction
 class LengthFunction extends SoyAbstractTofuFunction
-    implements SoyJsSrcFunction, SoyJavaSrcFunction {
+    implements SoyJsSrcFunction, SoyJavaSrcFunction, SoyGoSrcFunction {
 
 
   @Inject
@@ -85,6 +89,15 @@ class LengthFunction extends SoyAbstractTofuFunction
     return toIntegerJavaExpr(
         JavaCodeUtils.genNewIntegerData(
             "(" + JavaCodeUtils.genMaybeCast(arg, SoyListData.class) + ").length()"));
+  }
+
+
+  @Override public GoExpr computeForGoSrc(List<GoExpr> args) {
+    GoExpr arg = args.get(0);
+
+    return toIntegerGoExpr(
+        GoCodeUtils.genNewIntegerData(
+            "(" + GoCodeUtils.genMaybeCast(arg, SoyListData.class) + ").Len()"));
   }
 
 }

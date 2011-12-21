@@ -19,6 +19,9 @@ package com.google.template.soy.basicdirectives;
 import com.google.common.collect.ImmutableSet;
 import com.google.template.soy.data.SoyData;
 import com.google.template.soy.data.SoyDataException;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcPrintDirective;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
 import com.google.template.soy.javasrc.restricted.SoyJavaSrcPrintDirective;
@@ -40,7 +43,7 @@ import javax.inject.Singleton;
  */
 @Singleton
 public class TruncateDirective extends SoyAbstractTofuPrintDirective
-    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective {
+    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective, SoyGoSrcPrintDirective {
 
 
   @Inject
@@ -140,6 +143,21 @@ public class TruncateDirective extends SoyAbstractTofuPrintDirective
     return new JavaExpr(
         JavaCodeUtils.genFunctionCall(
             JavaCodeUtils.UTILS_LIB + ".$$truncate",
+            valueExprText, maxLenExprText, doAddEllipsisExprText),
+        String.class, Integer.MAX_VALUE);
+  }
+
+
+  @Override public GoExpr applyForGoSrc(GoExpr value, List<GoExpr> args) {
+
+    String valueExprText = GoCodeUtils.genCoerceString(value);
+    String maxLenExprText = GoCodeUtils.genIntegerValue(args.get(0));
+    String doAddEllipsisExprText =
+        (args.size() == 2) ? GoCodeUtils.genBooleanValue(args.get(1)) : "true" /*default*/;
+
+    return new GoExpr(
+        GoCodeUtils.genFunctionCall(
+            GoCodeUtils.UTILS_LIB + ".Truncate",
             valueExprText, maxLenExprText, doAddEllipsisExprText),
         String.class, Integer.MAX_VALUE);
   }

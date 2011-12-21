@@ -23,6 +23,9 @@ import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SanitizedContentOperator;
 import com.google.template.soy.data.SoyData;
 import com.google.template.soy.data.SoyDataException;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcPrintDirective;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
 import com.google.template.soy.javasrc.restricted.SoyJavaSrcPrintDirective;
@@ -41,7 +44,7 @@ import java.util.Set;
  */
 @Singleton
 public class InsertWordBreaksDirective extends SoyAbstractTofuPrintDirective
-    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective, SanitizedContentOperator {
+    implements SoyJsSrcPrintDirective, SoyJavaSrcPrintDirective, SoyGoSrcPrintDirective, SanitizedContentOperator {
 
 
   @Inject
@@ -162,6 +165,16 @@ public class InsertWordBreaksDirective extends SoyAbstractTofuPrintDirective
             JavaCodeUtils.UTILS_LIB + ".$$insertWordBreaks",
             JavaCodeUtils.genCoerceString(value),
             JavaCodeUtils.genIntegerValue(args.get(0))),
+        String.class, Integer.MAX_VALUE);
+  }
+
+
+  @Override public GoExpr applyForGoSrc(GoExpr str, List<GoExpr> args) {
+    return new GoExpr(
+        GoCodeUtils.genFunctionCall(
+            GoCodeUtils.UTILS_LIB + ".InsertWordBreaks", 
+            GoCodeUtils.genCoerceString(str), 
+            GoCodeUtils.genIntegerValue(args.get(0))),
         String.class, Integer.MAX_VALUE);
   }
 

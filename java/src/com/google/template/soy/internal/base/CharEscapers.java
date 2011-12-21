@@ -707,24 +707,123 @@ public final class CharEscapers {
    */
   private static final CharEscaper JAVA_STRING_UNICODE_ESCAPER
       = new CharEscaper() {
-          @Override protected char[] escape(char c) {
-            if (c <= 127) {
-              return null;
-            }
-
-            char[] r = new char[6];
-            r[5] = HEX_DIGITS[c & 15];
-            c >>>= 4;
-            r[4] = HEX_DIGITS[c & 15];
-            c >>>= 4;
-            r[3] = HEX_DIGITS[c & 15];
-            c >>>= 4;
-            r[2] = HEX_DIGITS[c & 15];
-            r[1] = 'u';
-            r[0] = '\\';
-            return r;
-          }
-        };
+	  @Override protected char[] escape(char c) {
+	    if (c <= 127) {
+	      return null;
+	    }
+	
+	    char[] r = new char[6];
+	    r[5] = HEX_DIGITS[c & 15];
+	    c >>>= 4;
+	    r[4] = HEX_DIGITS[c & 15];
+	    c >>>= 4;
+	    r[3] = HEX_DIGITS[c & 15];
+	    c >>>= 4;
+	    r[2] = HEX_DIGITS[c & 15];
+	    r[1] = 'u';
+	    r[0] = '\\';
+	    return r;
+	  }
+	};
+	
+	
+	
+	
+	/**
+	 * Returns a {@link CharEscaper} instance that escapes special characters in a
+	 * string so it can safely be included in a Go string literal.
+	 *
+	 * <p><b>Note</b></p>: does not escape single quotes, so use the escaper
+	 * returned by {@link #goCharEscaper()} if you are generating char
+	 * literals or if you are unsure.
+	 */
+	public static CharEscaper goStringEscaper() {
+	  return GO_STRING_ESCAPER;
+	}
+	
+	/**
+	 * Escapes special characters from a string so it can safely be included in a
+	 * Go string literal. Does <em>not</em> escape single-quotes, so use
+	 * GO_CHAR_ESCAPE if you are generating char literals, or if you are unsure.
+	 *
+	 * <p>Note that non-ASCII characters will be octal or Unicode escaped.
+	 */
+	private static final CharEscaper GO_STRING_ESCAPER
+	    = new GoCharEscaper(new CharEscaperBuilder()
+	        .addEscape('\b', "\\b")
+	        .addEscape('\f', "\\f")
+	        .addEscape('\n', "\\n")
+	        .addEscape('\r', "\\r")
+	        .addEscape('\t', "\\t")
+	        .addEscape('\"', "\\\"")
+	        .addEscape('\\', "\\\\")
+	        .toArray());
+	
+	/**
+	 * Returns a {@link CharEscaper} instance that escapes special characters in a
+	 * string so it can safely be included in a Go char or string literal. The
+	 * behavior of this escaper is the same as that of the
+	 * {@link #goStringEscaper()}, except it also escapes single quotes.
+	 */
+	public static CharEscaper goCharEscaper() {
+	  return GO_CHAR_ESCAPER;
+	}
+	
+	/**
+	 * Escapes special characters from a string so it can safely be included in a
+	 * Go char literal or string literal.
+	 *
+	 * <p>Note that non-ASCII characters will be octal or Unicode escaped.
+	 *
+	 * <p>This is the same as {@link #GO_STRING_ESCAPER}, except that it escapes
+	 * single quotes.
+	 */
+	private static final CharEscaper GO_CHAR_ESCAPER
+	    = new GoCharEscaper(new CharEscaperBuilder()
+	        .addEscape('\b', "\\b")
+	        .addEscape('\f', "\\f")
+	        .addEscape('\n', "\\n")
+	        .addEscape('\r', "\\r")
+	        .addEscape('\t', "\\t")
+	        .addEscape('\'', "\\'")
+	        .addEscape('\"', "\\\"")
+	        .addEscape('\\', "\\\\")
+	        .toArray());
+	
+	/**
+	 * Returns a {@link CharEscaper} instance that replaces non-ASCII characters
+	 * in a string with their Unicode escape sequences ({@code \\uxxxx} where
+	 * {@code xxxx} is a hex number). Existing escape sequences won't be affected.
+	 */
+	public static CharEscaper goStringUnicodeEscaper() {
+	  return GO_STRING_UNICODE_ESCAPER;
+	}
+	
+	/**
+	 * Escapes each non-ASCII character in with its Unicode escape sequence
+	 * {@code \\uxxxx} where {@code xxxx} is a hex number. Existing escape
+	 * sequences won't be affected.
+	 */
+	private static final CharEscaper GO_STRING_UNICODE_ESCAPER
+	    = new CharEscaper() {
+	        @Override protected char[] escape(char c) {
+	          if (c <= 127) {
+	            return null;
+	          }
+	
+	          char[] r = new char[6];
+	          r[5] = HEX_DIGITS[c & 15];
+	          c >>>= 4;
+	          r[4] = HEX_DIGITS[c & 15];
+	          c >>>= 4;
+	          r[3] = HEX_DIGITS[c & 15];
+	          c >>>= 4;
+	          r[2] = HEX_DIGITS[c & 15];
+	          r[1] = 'u';
+	          r[0] = '\\';
+	          return r;
+	        }
+	      };
 
   /**
    * Returns a {@link CharEscaper} instance that escapes special characters from
@@ -749,6 +848,36 @@ public final class CharEscapers {
       .addEscape('\"', "\\\"")
       .addEscape('\'', "\\\'")
       .toEscaper();
+
+  /**
+   * Returns a {@link CharEscaper} instance that escapes non-ASCII characters in
+   * a string so it can safely be included in a Go string literal.
+   * Non-ASCII characters are replaced with their ASCII Go escape
+   * sequences (e.g., \\uhhhh or \xhh).
+   */
+  public static CharEscaper goEscaper() {
+    return GO_ESCAPER;
+  }
+
+  /**
+   * {@code CharEscaper} to escape Go strings. Turns all non-ASCII
+   * characters into ASCII Go escape sequences (e.g., \\uhhhh or \xhh).
+   */
+  private static final CharEscaper GO_ESCAPER
+      = new JavascriptCharEscaper(new CharEscaperBuilder()
+          .addEscape('\'', "\\x27")
+          .addEscape('"',  "\\x22")
+          .addEscape('<',  "\\x3c")
+          .addEscape('=',  "\\x3d")
+          .addEscape('>',  "\\x3e")
+          .addEscape('&',  "\\x26")
+          .addEscape('\b', "\\b")
+          .addEscape('\t', "\\t")
+          .addEscape('\n', "\\n")
+          .addEscape('\f', "\\f")
+          .addEscape('\r', "\\r")
+          .addEscape('\\', "\\\\")
+          .toArray());
 
   /**
    * Returns a {@link CharEscaper} instance that escapes non-ASCII characters in
@@ -864,6 +993,60 @@ public final class CharEscapers {
   private static class JavaCharEscaper extends FastCharEscaper {
 
     public JavaCharEscaper(char[][] replacements) {
+      super(replacements, ' ', '~');
+    }
+
+    @Override protected char[] escape(char c) {
+      // First check if our array has a valid escaping.
+      if (c < replacementLength) {
+        char[] r = replacements[c];
+        if (r != null) {
+          return r;
+        }
+      }
+
+      // This range is un-escaped.
+      if (safeMin <= c && c <= safeMax) {
+        return null;
+      }
+
+      if (c <= 0xFF) {
+        // Convert c to an octal-escaped string.
+        // Equivalent to String.format("\\%03o", (int)c);
+        char[] r = new char[4];
+        r[0] = '\\';
+        r[3] = HEX_DIGITS[c & 7];
+        c >>>= 3;
+        r[2] = HEX_DIGITS[c & 7];
+        c >>>= 3;
+        r[1] = HEX_DIGITS[c & 7];
+        return r;
+      }
+
+      // Convert c to a hex-escaped string.
+      // Equivalent to String.format("\\u%04x", (int)c);
+      char[] r = new char[6];
+      r[0] = '\\';
+      r[1] = 'u';
+      r[5] = HEX_DIGITS[c & 15];
+      c >>>= 4;
+      r[4] = HEX_DIGITS[c & 15];
+      c >>>= 4;
+      r[3] = HEX_DIGITS[c & 15];
+      c >>>= 4;
+      r[2] = HEX_DIGITS[c & 15];
+      return r;
+    }
+  }
+
+  /**
+   * Escaper for Go character escaping, contains both an array and a
+   * backup function.  We're not overriding the array decorator because we
+   * want to keep this as fast as possible, so no calls to super.escape first.
+   */
+  private static class GoCharEscaper extends FastCharEscaper {
+
+    public GoCharEscaper(char[][] replacements) {
       super(replacements, ' ', '~');
     }
 

@@ -23,6 +23,9 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.template.soy.data.SoyData;
 import com.google.template.soy.data.restricted.IntegerData;
+import com.google.template.soy.gosrc.restricted.GoCodeUtils;
+import com.google.template.soy.gosrc.restricted.GoExpr;
+import com.google.template.soy.gosrc.restricted.SoyGoSrcFunction;
 import com.google.template.soy.javasrc.restricted.JavaCodeUtils;
 import com.google.template.soy.javasrc.restricted.JavaExpr;
 import com.google.template.soy.javasrc.restricted.SoyJavaSrcFunction;
@@ -41,7 +44,7 @@ import java.util.Set;
  */
 @Singleton
 @SoyPureFunction
-class MaxFunction extends SoyAbstractTofuFunction implements SoyJsSrcFunction, SoyJavaSrcFunction {
+class MaxFunction extends SoyAbstractTofuFunction implements SoyJsSrcFunction, SoyJavaSrcFunction, SoyGoSrcFunction {
 
 
   @Inject
@@ -85,6 +88,15 @@ class MaxFunction extends SoyAbstractTofuFunction implements SoyJsSrcFunction, S
 
     return JavaCodeUtils.genJavaExprForNumberToNumberBinaryFunction(
         "Math.max", "$$max", arg0, arg1);
+  }
+
+
+  @Override public GoExpr computeForGoSrc(List<GoExpr> args) {
+    GoExpr arg0 = args.get(0);
+    GoExpr arg1 = args.get(1);
+
+    return GoCodeUtils.genGoExprForNumberToNumberBinaryFunction(
+    	GoCodeUtils.UTILS_LIB + ".Max", "$$max", arg0, arg1);
   }
 
 }
