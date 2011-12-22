@@ -178,7 +178,7 @@ class IsComputableAsGoExprsVisitor extends AbstractReturningSoyNodeVisitor<Boole
    * @param node The parent node whose children to check.
    * @return True if all children satisfy IsComputableAsGoExprsVisitor.
    */
-  private boolean areChildrenComputableAsGoExprs(ParentSoyNode<? extends SoyNode> node) {
+  private boolean areChildrenComputableAsGoExprs(ParentSoyNode<?> node) {
 
     for (SoyNode child : node.getChildren()) {
       // Note: Save time by not visiting RawTextNode and PrintNode children.

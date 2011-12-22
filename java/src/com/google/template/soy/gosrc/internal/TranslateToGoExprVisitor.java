@@ -149,7 +149,7 @@ public class TranslateToGoExprVisitor extends AbstractReturningExprNodeVisitor<G
   // Implementation for a dummy root node.
 
 
-  @Override protected GoExpr visitExprRootNode(ExprRootNode<? extends ExprNode> node) {
+  @Override protected GoExpr visitExprRootNode(ExprRootNode<?> node) {
     return visit(node.getChild(0));
   }
 
