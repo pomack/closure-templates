@@ -39,7 +39,6 @@ import com.google.template.soy.soytree.SoyNode.ParentSoyNode;
 import com.google.template.soy.soytree.SwitchNode;
 import com.google.template.soy.soytree.TemplateNode;
 
-import java.util.Deque;
 import java.util.Map;
 
 
@@ -67,9 +66,6 @@ class IsComputableAsGoExprsVisitor extends AbstractReturningSoyNodeVisitor<Boole
 
   /** The memoized results of past visits to nodes. */
   private final Map<SoyNode, Boolean> memoizedResults;
-
-  /** Stack of partial results (during run). */
-  private Deque<Boolean> resultStack;
 
 
   /**
@@ -186,10 +182,8 @@ class IsComputableAsGoExprsVisitor extends AbstractReturningSoyNodeVisitor<Boole
 
     for (SoyNode child : node.getChildren()) {
       // Note: Save time by not visiting RawTextNode and PrintNode children.
-      if (!(child instanceof RawTextNode) && !(child instanceof PrintNode)) {
-        visit(child);
-        boolean childResult = resultStack.pop();
-        if (!childResult) {
+      if (! (child instanceof RawTextNode) && ! (child instanceof PrintNode)) {
+        if(! visit(child)) {
           return false;
         }
       }
