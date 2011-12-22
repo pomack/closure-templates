@@ -215,7 +215,7 @@ func BidiIsNeutralText(str string) bool {
 func BidiRtlWordRatio(str string) float64 {
   rtlCount := 0
   totalCount := 0
-  tokens := strings.Split(str, " ", -1)
+  tokens := strings.SplitN(str, " ", -1)
   for _, token := range tokens {
     if BidiIsRtlText(token) {
       rtlCount++

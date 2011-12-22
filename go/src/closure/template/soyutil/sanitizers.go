@@ -1,6 +1,11 @@
 package soyutil;
 
-
+import (
+    "html"
+    "json"
+    "strings"
+    "url"
+)
 
 /**
  * Escapes HTML special characters in a string. Escapes double quote '"' in
@@ -76,7 +81,7 @@ func EscapeUri(str string) string {
   // over head in IE6 for lower working set apps, but for large working set
   // apps, it saves about 70us per call.
   if !_ENCODE_URI_RE.MatchString(str) {
-    return http.URLEscape(str)
+    return url.QueryEscape(str)
   }
   return str
 }

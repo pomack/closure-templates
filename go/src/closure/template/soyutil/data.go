@@ -1056,78 +1056,54 @@ func ToSoyData(obj interface{}) (SoyData, os.Error) {
   case *vector.Vector:
     return NewSoyListDataFromVector(o), nil
   }
-  rt := reflect.Typeof(obj)
-  switch t := rt.(type) {
-  case *reflect.ArrayType:
+  rv := reflect.ValueOf(obj)
+  switch rv.Kind() {
+  case reflect.Array, reflect.Slice:
     l := NewSoyListData()
-    rv := reflect.NewValue(obj)
-    if ar, ok := rv.(*reflect.ArrayValue); ok {
-      for i := 0; i < ar.Len(); i++ {
-        v := ar.Elem(i)
-        var sv SoyData
-        if v == nil {
-          sv = NilDataInstance
-        } else {
-          sv, _ = ToSoyData(v.Interface())
-        }
-        l.PushBack(sv)
+    for i := 0; i < rv.Len(); i++ {
+      v := rv.Index(i)
+      var sv SoyData
+      if v.Internal == nil {
+        sv = NilDataInstance
+      } else {
+        sv, _ = ToSoyData(v.Interface())
       }
+      l.PushBack(sv)
     }
     return l, nil
-  case *reflect.SliceType:
-    l := NewSoyListData()
-    rv := reflect.NewValue(obj)
-    if ar, ok := rv.(*reflect.SliceValue); ok {
-      for i := 0; i < ar.Len(); i++ {
-        v := ar.Elem(i)
-        var sv SoyData
-        if v == nil {
-          sv = NilDataInstance
-        } else {
-          sv, _ = ToSoyData(v.Interface())
-        }
-        l.PushBack(sv)
-      }
-    }
-    return l, nil
-  case *reflect.MapType:
+  case reflect.Map:
     m := NewSoyMapData()
-    rv := reflect.NewValue(obj)
-    if o, ok := rv.(*reflect.MapValue); ok {
-      if !o.IsNil() {
-        for _,  key := range o.Keys() {
-          var k string
-          var sv SoyData
-          if key == nil {
-            k = "null"
-          } else if st, ok := key.Interface().(Stringer); ok {
-            k = st.String()
-          } else if k, ok = key.Interface().(string); ok {
-          } else {
-            s, _ := ToSoyData(key.Interface())
-            k = s.StringValue()
-          }
-          av := o.Elem(key)
-          if av == nil {
-            sv = NilDataInstance
-          } else {
-            sv, _ = ToSoyData(av.Interface())
-          }
-          m.Set(k, sv)
+    if !rv.IsNil() {
+      for _, key := range rv.MapKeys() {
+        var k string
+        var sv SoyData
+        if key.Internal == nil {
+          k = "null"
+        } else if st, ok := key.Interface().(Stringer); ok {
+          k = st.String()
+        } else if k, ok = key.Interface().(string); ok {
+        } else {
+          s, _ := ToSoyData(key.Interface())
+          k = s.StringValue()
         }
+        av := rv.MapIndex(key)
+        if av.Internal == nil {
+          sv = NilDataInstance
+        } else {
+          sv, _ = ToSoyData(av.Interface())
+        }
+        m.Set(k, sv)
       }
     }
     return m, nil
-  case *reflect.StructType:
+  case reflect.Struct:
     m := NewSoyMapData()
-    rv := reflect.NewValue(obj)
-    if s, ok := rv.(*reflect.StructValue); ok {
-      for i := 0; i < t.NumField(); i++ {
-        f := t.Field(i)
-        k := f.Name
-        v, _ := ToSoyData(s.Field(i).Interface())
-        m.Set(k, v)
-      }
+    rt := rv.Type()
+    for i := 0; i < rt.NumField(); i++ {
+      f := rt.Field(i)
+      k := f.Name
+      v, _ := ToSoyData(rv.Field(i).Interface())
+      m.Set(k, v)
     }
     return m, nil
   }

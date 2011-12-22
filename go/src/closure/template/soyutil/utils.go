@@ -2,9 +2,6 @@ package soyutil;
 
 import (
   "bytes"
-  "html"
-  "http"
-  "json"
   "math"
   "rand"
   "strconv"
