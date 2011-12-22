@@ -92,7 +92,7 @@ public class EscapeHtmlDirective extends SoyAbstractTofuPrintDirective
 
   @Override public GoExpr applyForGoSrc(GoExpr value, List<GoExpr> args) {
     return new GoExpr(
-        GoCodeUtils.genFunctionCall(GoCodeUtils.UTILS_LIB + ".EscapeHtml", value.getText()),
+        GoCodeUtils.genFunctionCall(GoCodeUtils.UTILS_LIB + ".EscapeHtml", GoCodeUtils.genCoerceString(value)),
         String.class, Integer.MAX_VALUE);
   }
 
