@@ -6,6 +6,7 @@ GOFILES=\
         bidi.go\
         const.go\
         data.go\
+        sanitized_content.go\
         sanitizers.go\
         utils.go
 

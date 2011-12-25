@@ -131,8 +131,7 @@ public class GoCodeUtils {
 
   public static String genNewSanitizedContent(
       String innerExprText, SanitizedContent.ContentKind contentKind) {
-	// TODO AALOK genNewSanitizedContent for use with Go code rather than Java Code
-    return "soyutil.SanitizedContent(" + innerExprText + ", " +
+    return "soyutil.NewSanitizedContent(" + innerExprText + ", " +
         "soyutil.CONTENT_KIND_" + contentKind.name() + ")";
   }
 

@@ -42,6 +42,49 @@ const (
 
 )
 
+type ContentKind int
+
+const (
+  
+  /**
+   * A snippet of HTML that does not start or end inside a tag, comment, entity, or DOCTYPE; and
+   * that does not contain any executable code (JS, {@code <object>}s, etc.) from a different
+   * trust domain.
+   */
+  CONTENT_KIND_HTML ContentKind = iota +  1
+
+  /**
+   * A sequence of code units that can appear between quotes (either single or double) in a JS
+   * program without causing a parse error, and without causing any side effects.
+   * <p>
+   * The content should not contain unescaped quotes, newlines, or anything else that would
+   * cause parsing to fail or to cause a JS parser to finish the string it is parsing inside
+   * the content.
+   * <p>
+   * The content must also not end inside an escape sequence ; no partial octal escape sequences
+   * or odd number of '{@code \}'s at the end.
+   */
+  CONTENT_KIND_JS_STR_CHARS
+
+  /** A properly encoded portion of a URI. */
+  CONTENT_KIND_URI
+
+  /** An attribute name and value, such as {@code dir="ltr"}. */
+  CONTENT_KIND_HTML_ATTRIBUTE
+)
+
+func (p ContentKind) String() string {
+  switch p {
+  case CONTENT_KIND_HTML:
+    return "HTML"
+  case CONTENT_KIND_JS_STR_CHARS:
+    return "JS_STR_CHARS"
+  case CONTENT_KIND_HTML_ATTRIBUTE:
+    return "HTML_ATTRIBUTE"
+  }
+  return "UNKNOWN_CONTENT_KIND"
+}
+
 var (
   /**
    * Simplified regular expression for am HTML tag (opening or closing) or an HTML
