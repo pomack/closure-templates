@@ -304,8 +304,8 @@ func HasData() bool {
   return true
 }
 
-func RandomInt(a int) int {
-  return rand.Intn(a)
+func RandomInt(a int) IntegerData {
+  return IntegerData(rand.Intn(a))
 }
 
 func GetData(data SoyData, key string) SoyData {
