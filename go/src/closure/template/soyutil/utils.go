@@ -20,8 +20,7 @@ func Conditional(cond bool, iftrue SoyData, iffalse SoyData) SoyData {
   return iffalse
 }
 
-func InsertWordBreaks(value string, maxCharsBetweenWordBreaksS SoyData) string {
-  maxCharsBetweenWordBreaks := int(maxCharsBetweenWordBreaksS.IntegerValue())
+func InsertWordBreaks(value string, maxCharsBetweenWordBreaks int) string {
   result := bytes.NewBuffer(make([]byte, 0, (len(value) + (len(value) / maxCharsBetweenWordBreaks) + 2)))
 
   // These variables keep track of important state while looping through the string below.
