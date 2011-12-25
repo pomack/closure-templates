@@ -94,7 +94,7 @@ class CeilingFunction extends SoyAbstractTofuFunction
     GoExpr arg = args.get(0);
 
     return toIntegerGoExpr(GoCodeUtils.genNewIntegerData(
-        GoCodeUtils.UTILS_LIB + ".Ceiling(" + GoCodeUtils.genNumberValue(arg) + ")"));
+        GoCodeUtils.UTILS_LIB + ".Ceiling(" + GoCodeUtils.genNumberValue(arg) + ").IntegerValue()"));
   }
 
 }

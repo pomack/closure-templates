@@ -16,7 +16,7 @@
 
 package com.google.template.soy.basicfunctions;
 
-import static com.google.template.soy.gosrc.restricted.SoyGoSrcFunctionUtils.toIntegerGoExpr;
+import static com.google.template.soy.gosrc.restricted.SoyGoSrcFunctionUtils.toUnknownGoExpr;
 import static com.google.template.soy.javasrc.restricted.SoyJavaSrcFunctionUtils.toIntegerJavaExpr;
 import static com.google.template.soy.shared.restricted.SoyJavaRuntimeFunctionUtils.toSoyData;
 
@@ -91,9 +91,9 @@ class RandomIntFunction extends SoyAbstractTofuFunction
 
   @Override public GoExpr computeForGoSrc(List<GoExpr> args) {
     GoExpr arg = args.get(0);
-    return toIntegerGoExpr(GoCodeUtils.genFunctionCall(
-        GoCodeUtils.UTILS_LIB + ".RandomInt",
-        GoCodeUtils.genIntegerValue(arg)));
+    return toUnknownGoExpr(
+        GoCodeUtils.UTILS_LIB + ".RandomInt(" +
+        GoCodeUtils.genIntegerValue(arg) + ")");
   }
 
 }
