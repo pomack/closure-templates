@@ -28,12 +28,32 @@ func (p *SanitizedContent) BooleanValue() bool {
   return len(p.content) != 0
 }
 
+func (p *SanitizedContent) IntegerValue() int {
+  return len(p.content)
+}
+
+func (p *SanitizedContent) FloatValue() float32 {
+  return float32(len(p.content))
+}
+
+func (p *SanitizedContent) Float64Value() float64 {
+  return float64(len(p.content))
+}
+
+func (p *SanitizedContent) NumberValue() float64 {
+  return float64(len(p.content))
+}
+
 func (p *SanitizedContent) String() string {
   return p.content
 }
 
 func (p *SanitizedContent) StringValue() string {
   return p.content
+}
+
+func (p *SanitizedContent) SoyData() SoyData {
+  return p
 }
 
 func (p *SanitizedContent) Equals(other interface{}) bool {
