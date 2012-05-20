@@ -2,9 +2,7 @@ package soyutil;
 
 import (
   "container/list"
-  "container/vector"
   "fmt"
-  "os"
   "strconv"
   "reflect"
 )
@@ -28,6 +26,10 @@ func NewSoyDataException(msg string) *SoyDataException {
 }
 
 func (p *SoyDataException) String() string {
+  return p.msg
+}
+
+func (p *SoyDataException) Error() string {
   return p.msg
 }
 
@@ -439,11 +441,11 @@ func (p Float64Data) NumberValue() (float64) {
 }
 
 func (p Float64Data) StringValue() string {
-  return strconv.Ftoa64(float64(p), 'g', -1)
+  return strconv.FormatFloat(float64(p), 'g', -1, 64)
 }
 
 func (p Float64Data) String() string {
-  return strconv.Ftoa64(float64(p), 'g', -1)
+  return strconv.FormatFloat(float64(p), 'g', -1, 64)
 }
 
 func (p Float64Data) Bool() bool {
@@ -609,13 +611,13 @@ func NewSoyListDataFromList(o *list.List) SoyListData {
   return a
 }
 
-func NewSoyListDataFromVector(o *vector.Vector) SoyListData {
+func NewSoyListDataFromVector(o []SoyData) SoyListData {
   if o == nil {
     return &soyListData{l:list.New()}
   }
   l := list.New()
-  for i := 0; i < o.Len(); i++ {
-    l.PushBack(o.At(i))
+  for i := 0; i < len(o); i++ {
+    l.PushBack(o[i])
   }
   a := &soyListData{l:l}
   return a
@@ -813,7 +815,7 @@ func NewSoyMapDataFromGenericMap(o map[string]interface{}) SoyMapData {
     if err != nil {
       return nil
     }
-    m[key] = value, true
+    m[key] = value
   }
   return SoyMapData(m)
 }
@@ -887,11 +889,11 @@ func (p SoyMapData) String() string {
 }
 
 func (p SoyMapData) Equals(other interface{}) bool {
-  if p == other {
-    return true
-  }
   if other == nil {
     return false
+  }
+  if o, ok := other.(SoyMapData); ok && &p == &o {
+    return true
   }
   if o, ok := other.(SoyMapData); ok {
     if len(p) != len(o) {
@@ -1029,7 +1031,13 @@ func ToSoyDataNoErr(obj interface{}) SoyData {
  * @return A SoyData object or tree that corresponds to the given object.
  * @throws SoyDataException If the given object cannot be converted to SoyData.
  */
-func ToSoyData(obj interface{}) (SoyData, os.Error) {
+func ToSoyData(obj interface{}) (SoyData, error) {
+  if obj == nil {
+    return NilDataInstance, nil
+  }
+  if o, ok := obj.(SoyData); ok && o != nil {
+    return o, nil
+  }
   switch o := obj.(type) {
   case nil:
     return NilDataInstance, nil
@@ -1053,7 +1061,7 @@ func ToSoyData(obj interface{}) (SoyData, os.Error) {
     return NewFloat64Data(o), nil
   case *list.List:
     return NewSoyListDataFromList(o), nil
-  case *vector.Vector:
+  case []SoyData:
     return NewSoyListDataFromVector(o), nil
   }
   rv := reflect.ValueOf(obj)
@@ -1063,7 +1071,7 @@ func ToSoyData(obj interface{}) (SoyData, os.Error) {
     for i := 0; i < rv.Len(); i++ {
       v := rv.Index(i)
       var sv SoyData
-      if v.Internal == nil {
+      if v.Interface() == nil {
         sv = NilDataInstance
       } else {
         sv, _ = ToSoyData(v.Interface())
@@ -1077,7 +1085,7 @@ func ToSoyData(obj interface{}) (SoyData, os.Error) {
       for _, key := range rv.MapKeys() {
         var k string
         var sv SoyData
-        if key.Internal == nil {
+        if key.Interface() == nil {
           k = "null"
         } else if st, ok := key.Interface().(Stringer); ok {
           k = st.String()
@@ -1087,7 +1095,7 @@ func ToSoyData(obj interface{}) (SoyData, os.Error) {
           k = s.StringValue()
         }
         av := rv.MapIndex(key)
-        if av.Internal == nil {
+        if av.Interface() == nil {
           sv = NilDataInstance
         } else {
           sv, _ = ToSoyData(av.Interface())

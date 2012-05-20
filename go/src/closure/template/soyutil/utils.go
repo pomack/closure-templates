@@ -3,7 +3,7 @@ package soyutil;
 import (
   "bytes"
   "math"
-  "rand"
+  "math/rand"
   "strconv"
   "strings"
 )

@@ -5,10 +5,9 @@ package soyutil;
 
 import (
   "bytes"
-  "exp/regexp"
+  "regexp"
   "fmt"
   "io"
-  "os"
   "sort"
   "strconv"
   "strings"
@@ -132,7 +131,7 @@ type Escape interface {
   /**
    * A character in the input language.
    */
-  PlainText() int
+  PlainText() rune
   /**
    * A string in the output language that corresponds to {@link #getPlainText}
    * in the input language.
@@ -143,18 +142,18 @@ type Escape interface {
  
  
 type escape struct {
-  plainText int
+  plainText rune
   escaped string
 }
 
-func NewEscape(plainText int, escaped string) Escape {
+func NewEscape(plainText rune, escaped string) Escape {
   return &escape{
     plainText: plainText,
     escaped: escaped,
   }
 }
 
-func (p *escape) PlainText() int {
+func (p *escape) PlainText() rune {
   return p.plainText
 }
 
@@ -192,18 +191,18 @@ func newAppendableEscapedWriter(clsx *crossLanguageStringXform, w io.Writer) io.
 }
 
 
-func (p *appendableEscapedWriter) WriteString(s string) (int, os.Error) {
+func (p *appendableEscapedWriter) WriteString(s string) (int, error) {
   _, err := p.clsx.maybeEscapeOnto(s, p.w)
   return len(s), err
 }
 
 
-func (p *appendableEscapedWriter) Write(b []byte) (int, os.Error) {
+func (p *appendableEscapedWriter) Write(b []byte) (int, error) {
   _, err := p.clsx.maybeEscapeOnto(string(b), p.w)
   return len(b), err
 }
 
-func (p *appendableEscapedWriter) Close() (os.Error) {
+func (p *appendableEscapedWriter) Close() (error) {
   if cls, ok := p.w.(io.WriteCloser); ok {
     return cls.Close()
   }
@@ -220,7 +219,7 @@ type CrossLanguageStringXform interface {
   ValueFilter() *regexp.Regexp
   NonAsciiPrefix() string
   Escapes() []Escape
-  Escape(s string) (string, os.Error)
+  Escape(s string) (string, error)
   EscapedWriter(w io.Writer) (io.Writer)
   DefineEscapes() []Escape
 }
@@ -302,9 +301,9 @@ func initCrossLanguageStringXform(clsx *crossLanguageStringXform, simpleName str
   }
   // Create the dense ASCII map.
   if numAsciiEscapes != 0 {
-    escapesByCodeUnit := make([]string, escapes[numAsciiEscapes].PlainText() + 1)
+    escapesByCodeUnit := make([]string, escapes[numAsciiEscapes-1].PlainText() + 1)
     for _, escape := range escapes[0:numAsciiEscapes] {
-      escapesByCodeUnit[escape.PlainText()] = escape.Escaped()
+      escapesByCodeUnit[int(escape.PlainText())] = escape.Escaped()
     }
     clsx.escapesByCodeUnit = escapesByCodeUnit
   } else {
@@ -317,7 +316,7 @@ func initCrossLanguageStringXform(clsx *crossLanguageStringXform, simpleName str
     nonAsciiEscapes := make([]string, numNonAsciiEscapes)
     for i := 0; i < numNonAsciiEscapes; i++ {
       esc := escapes[numAsciiEscapes + i]
-      nonAsciiCodeUnits[i] = esc.PlainText()
+      nonAsciiCodeUnits[i] = int(esc.PlainText())
       nonAsciiEscapes[i] = esc.Escaped()
     }
     clsx.nonAsciiCodeUnits = nonAsciiCodeUnits
@@ -374,7 +373,7 @@ func (p* crossLanguageStringXform) Escapes() []Escape {
 
 
 // Methods that satisfy the Escaper interface.
-func (p* crossLanguageStringXform) Escape(s string) (string, os.Error) {
+func (p* crossLanguageStringXform) Escape(s string) (string, error) {
   // We pass null so that we don't unnecessarily allocate (and zero) or copy char arrays.
   buf, err := p.maybeEscapeOnto(s, nil)
   if buf != nil {
@@ -397,7 +396,7 @@ func (p* crossLanguageStringXform) EscapedWriter(w io.Writer) (io.Writer) {
  * @return null if no output buffer was passed in, and s contains no characters that need
  *    escaping.  Otherwise out, or a StringBuilder if one needed to be allocated.
  */
-func (p *crossLanguageStringXform) maybeEscapeOnto(s string, out io.Writer) (io.Writer, os.Error) {
+func (p *crossLanguageStringXform) maybeEscapeOnto(s string, out io.Writer) (io.Writer, error) {
   return p.maybeEscapeOntoSubstring(s, out, 0, len(s))
 }
 
@@ -407,13 +406,13 @@ func (p *crossLanguageStringXform) maybeEscapeOnto(s string, out io.Writer) (io.
  * @return null if no output buffer was passed in, and s contains no characters that need
  *    escaping.  Otherwise out, or a StringBuilder if one needed to be allocated.
  */
-func (p *crossLanguageStringXform) maybeEscapeOntoSubstring(s string, out io.Writer, start, end int) (io.Writer, os.Error) {
-  var err os.Error
+func (p *crossLanguageStringXform) maybeEscapeOntoSubstring(s string, out io.Writer, start, end int) (io.Writer, error) {
+  var err error
   pos := start
   escapesByCodeUnitLen := len(p.escapesByCodeUnit)
   for j, c := range s[start:end] {
     i := start + j
-    if c < escapesByCodeUnitLen {  // Use the dense map.
+    if int(c) < escapesByCodeUnitLen {  // Use the dense map.
       esc := p.escapesByCodeUnit[c];
       if esc != "" {
         if out == nil {
@@ -428,7 +427,7 @@ func (p *crossLanguageStringXform) maybeEscapeOntoSubstring(s string, out io.Wri
         pos = i + 1
       }
     } else if c >= 0x80 {  // Use the sparse map.
-      index := sort.SearchInts(p.nonAsciiCodeUnits, c);
+      index := sort.SearchInts(p.nonAsciiCodeUnits, int(c))
       if index >= 0 {
         if out == nil {
           out = bytes.NewBuffer(make([]byte, 0))
@@ -463,7 +462,7 @@ func (p *crossLanguageStringXform) maybeEscapeOntoSubstring(s string, out io.Wri
  * @param c A code unit greater than or equal to 0x80.
  * @param out written to.
  */
-func (p* crossLanguageStringXform) escapeUsingPrefix(c int, out io.Writer) (err os.Error) {
+func (p* crossLanguageStringXform) escapeUsingPrefix(c rune, out io.Writer) (err error) {
   if "%" == p.nonAsciiPrefix {  // Use a UTF-8
     if c < 0x800 {
       _, err = out.Write(_BYTE_ARRAY_PERCENT)
@@ -502,7 +501,7 @@ func (p* crossLanguageStringXform) escapeUsingPrefix(c int, out io.Writer) (err 
 /**
  * Given {@code 0x20} appends {@code "20"} to the given output buffer.
  */
-func appendHexPair(b int, out io.Writer) os.Error {
+func appendHexPair(b rune, out io.Writer) error {
   _, err := out.Write([]byte{HEX_DIGITS[b >> 4]})
   if err != nil {
     return err
@@ -517,7 +516,7 @@ type numericEscaperFor interface {
    * language.
    * E.g. in C, the numeric escape for space is {@code \x20}.
    */
-  NumericEscapeFor(plainText int) string
+  NumericEscapeFor(plainText rune) string
 }
 
 type escapeListBuilder struct {
@@ -533,7 +532,7 @@ func initEscapeListBuilder(elb *escapeListBuilder, escaper numericEscaperFor) {
 /**
  * Adds an escape for the given code unit in the input language to the given escaped text.
  */
-func (p *escapeListBuilder) EscapeWithValue(plainText int, escaped string) *escapeListBuilder {
+func (p *escapeListBuilder) EscapeWithValue(plainText rune, escaped string) *escapeListBuilder {
   p.escapes = append(p.escapes, NewEscape(plainText, escaped))
   return p
 }
@@ -542,7 +541,7 @@ func (p *escapeListBuilder) EscapeWithValue(plainText int, escaped string) *esca
  * Adds an escape for the given code unit in the input language using the numeric escaping
  * scheme.
  */
-func (p *escapeListBuilder) Escape(plainText int) *escapeListBuilder {
+func (p *escapeListBuilder) Escape(plainText rune) *escapeListBuilder {
   return p.EscapeWithValue(plainText, p.escaper.NumericEscapeFor(plainText))
 }
 
@@ -550,8 +549,8 @@ func (p *escapeListBuilder) Escape(plainText int) *escapeListBuilder {
  * Adds a numeric escape for each code unit in the input string.
  */
 func (p *escapeListBuilder) EscapeAll(plainTextCodeUnits string) *escapeListBuilder {
-  for _, rune := range plainTextCodeUnits {
-    p.Escape(rune)
+  for _, r := range plainTextCodeUnits {
+    p.Escape(r)
   }
   return p
 }
@@ -559,10 +558,10 @@ func (p *escapeListBuilder) EscapeAll(plainTextCodeUnits string) *escapeListBuil
 /**
  * Adds numeric escapes for each code unit in the given range not in the exclusion set.
  */
-func (p *escapeListBuilder) EscapeAllInRangeExcept(startInclusive, endExclusive int, notEscaped ...int) *escapeListBuilder {
-  notEscaped2 := make([]int, len(notEscaped))
+func (p *escapeListBuilder) EscapeAllInRangeExcept(startInclusive, endExclusive rune, notEscaped ...rune) *escapeListBuilder {
+  notEscaped2 := make([]rune, len(notEscaped))
   copy(notEscaped2, notEscaped)
-  sort.Ints(notEscaped2)
+  //sort.Ints(notEscaped2)
   k := 0
   numNotEscaped2 := len(notEscaped2);
   for i := startInclusive; i < endExclusive; i++ {
@@ -609,8 +608,8 @@ func newHtmlEscapeListBuilder() *htmlEscapeListBuilder {
   return builder
 }
 
-func (p* htmlEscapeListBuilder) NumericEscapeFor(plainText int) string {
-  return "&#" + strconv.Itoa(plainText) + ";"
+func (p* htmlEscapeListBuilder) NumericEscapeFor(plainText rune) string {
+  return "&#" + strconv.Itoa(int(plainText)) + ";"
 }
 
 
@@ -841,7 +840,7 @@ func newJsEscapeListBuilder() *jsEscapeListBuilder {
   return builder
 }
 
-func (p* jsEscapeListBuilder) NumericEscapeFor(plainText int) (s string) {
+func (p* jsEscapeListBuilder) NumericEscapeFor(plainText rune) (s string) {
   if plainText < 0x100 {
     s = fmt.Sprintf("\\x%02x", plainText)
   } else {
@@ -968,8 +967,8 @@ func newCssEscapeListBuilder() *cssEscapeListBuilder {
   return builder
 }
 
-func (p* cssEscapeListBuilder) NumericEscapeFor(plainText int) (s string) {
-  return "\\" + strconv.Itob(plainText, 16)
+func (p* cssEscapeListBuilder) NumericEscapeFor(plainText rune) (s string) {
+  return "\\" + strconv.FormatInt(int64(plainText), 16)
 }
 
 /**
@@ -1049,7 +1048,7 @@ func newUriEscapeListBuilder() *uriEscapeListBuilder {
   return builder
 }
 
-func (p* uriEscapeListBuilder) NumericEscapeFor(plainText int) (s string) {
+func (p* uriEscapeListBuilder) NumericEscapeFor(plainText rune) (s string) {
   // URI encoding is different from the other escaping schemes.
   // The others are transformations on strings of UTF-16 code units, but URIs are composed of
   // strings of bytes.  We assume UTF-8 as the standard way to convert between bytes and code
@@ -1272,7 +1271,7 @@ func AllEscapers() []CrossLanguageStringXform {
  * CJK fullwidth forms</a> and <a href="unicode.org/charts/PDF/UFF00.pdf">unicode.org</a>.
  */
 func toFullWidth(ascii string) string {
-  chars := []int(ascii)
+  chars := []rune(ascii)
   for i, ch := range chars {
     if ch < 0x80 {
       chars[i] = ch + 0xff00 - 0x20

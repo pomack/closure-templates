@@ -3,10 +3,10 @@ package soyutil;
 import (
   "bytes"
   "io"
-  "json"
+  "encoding/json"
   "strconv"
   "strings"
-  "url"
+  "net/url"
 )
 
 /**
@@ -185,7 +185,7 @@ func EscapeJsValueSoyData(s SoyData) string {
   } else if v, ok := s.(IntegerData); ok {
     return " " + strconv.Itoa(v.IntegerValue()) + " "
   } else if v, ok := s.(Float64Data); ok {
-    return " " + strconv.Ftoa64(v.Float64Value(), 'g', -1) + " "
+    return " " + strconv.FormatFloat(v.Float64Value(), 'g', -1, 64) + " "
   } else if v, ok := s.(BooleanData); ok {
     if v.BooleanValue() {
       return " true "
@@ -443,7 +443,7 @@ func EscapeChar(c string) string {
     return v
   }
   var rv string
-  var cc int
+  var cc rune
   for _, cc = range rv {
     switch {
     case cc > 31 && cc < 127:
@@ -462,7 +462,7 @@ func EscapeChar(c string) string {
     }
     break
   }
-  _EscapeCharJs[c] = rv, true
+  _EscapeCharJs[c] = rv
   return rv
 }
 
