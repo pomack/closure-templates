@@ -1,7 +1,7 @@
 
 all: install
 
-GOPATH:=$(GOPATH):`pwd`/../../../..
+GOPATH:=$(GOPATH):`pwd`
 
 #
 
