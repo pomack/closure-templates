@@ -136,6 +136,15 @@ Represents a complete set of Soy files for compilation as one bundle. The files 
 </TR>
 <TR BGCOLOR="white" CLASS="TableRowColor">
 <TD ALIGN="right" VALIGN="top" WIDTH="1%"><FONT SIZE="-1">
+<CODE>&nbsp;<A HREF="http://java.sun.com/javase/6/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</A>&lt;com.google.template.soy.internal.base.Pair&lt;<A HREF="http://java.sun.com/javase/6/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</A>,<A HREF="http://java.sun.com/javase/6/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</A>&gt;&gt;</CODE></FONT></TD>
+<TD><CODE><B><A HREF="../../../../com/google/template/soy/SoyFileSet.html#compileToGoSrc(com.google.template.soy.gosrc.SoyGoSrcOptions, com.google.template.soy.msgs.SoyMsgBundle)">compileToGoSrc</A></B>(<A HREF="../../../../com/google/template/soy/gosrc/SoyGoSrcOptions.html" title="class in com.google.template.soy.gosrc">SoyGoSrcOptions</A>&nbsp;goSrcOptions,
+               <A HREF="../../../../com/google/template/soy/msgs/SoyMsgBundle.html" title="interface in com.google.template.soy.msgs">SoyMsgBundle</A>&nbsp;msgBundle)</CODE>
+
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Warning: The Go Src backend is experimental (repetitive, untested, undocumented).</TD>
+</TR>
+<TR BGCOLOR="white" CLASS="TableRowColor">
+<TD ALIGN="right" VALIGN="top" WIDTH="1%"><FONT SIZE="-1">
 <CODE>&nbsp;<A HREF="../../../../com/google/template/soy/tofu/SoyTofu.html" title="interface in com.google.template.soy.tofu">SoyTofu</A></CODE></FONT></TD>
 <TD><CODE><B><A HREF="../../../../com/google/template/soy/SoyFileSet.html#compileToJavaObj()">compileToJavaObj</A></B>()</CODE>
 
@@ -406,6 +415,26 @@ public <A HREF="http://java.sun.com/javase/6/docs/api/java/lang/String.html?is-e
 <DT><B>Parameters:</B><DD><CODE>javaSrcOptions</CODE> - The compilation options for the Java Src output target.<DD><CODE>msgBundle</CODE> - The bundle of translated messages, or null to use the messages from the Soy
      source.
 <DT><B>Returns:</B><DD>Java source code in one big ugly blob. Can be put inside any class without needing
+     additional imports because all class names in the generated code are fully qualified.</DL>
+</DD>
+</DL>
+<HR>
+
+<A NAME="compileToGoSrc(com.google.template.soy.gosrc.SoyGoSrcOptions, com.google.template.soy.msgs.SoyMsgBundle)"><!-- --></A><H3>
+compileToGoSrc</H3>
+<PRE>
+public <A HREF="http://java.sun.com/javase/6/docs/api/java/util/List.html?is-external=true" title="class or interface in java.util">List</A>&lt;com.google.template.soy.internal.base.Pair&lt;<A HREF="http://java.sun.com/javase/6/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</A>,<A HREF="http://java.sun.com/javase/6/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</A>&gt;&gt; <B>compileToGoSrc</B>(<A HREF="../../../../com/google/template/soy/gosrc/SoyGoSrcOptions.html" title="class in com.google.template.soy.gosrc">SoyGoSrcOptions</A>&nbsp;goSrcOptions,
+                                                                                      <A HREF="../../../../com/google/template/soy/msgs/SoyMsgBundle.html" title="interface in com.google.template.soy.msgs">SoyMsgBundle</A>&nbsp;msgBundle)</PRE>
+<DL>
+<DD><p> Warning: The Go Src backend is experimental (repetitive, untested, undocumented).
+
+ <p> To use Soy from Go, you should call <A HREF="../../../../com/google/template/soy/SoyFileSet.html#compileToJavaObj()"><CODE>compileToJavaObj()</CODE></A> to obtain a
+ <code>SoyTofu</code> object that will be able to render any public template in this Soy file set.
+<P>
+<DD><DL>
+<DT><B>Parameters:</B><DD><CODE>goSrcOptions</CODE> - The compilation options for the Go Src output target.<DD><CODE>msgBundle</CODE> - The bundle of translated messages, or null to use the messages from the Soy
+     source.
+<DT><B>Returns:</B><DD>Go source code in one big ugly blob. Can be put inside any class without needing
      additional imports because all class names in the generated code are fully qualified.</DL>
 </DD>
 </DL>
