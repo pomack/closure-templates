@@ -746,7 +746,7 @@ public final class CharEscapers {
 	 * Go string literal. Does <em>not</em> escape single-quotes, so use
 	 * GO_CHAR_ESCAPE if you are generating char literals, or if you are unsure.
 	 *
-	 * <p>Note that non-ASCII characters will be octal or Unicode escaped.
+	 * <p>Note that non-ASCII characters will be octal or Unicode escaped.</p>
 	 */
 	private static final CharEscaper GO_STRING_ESCAPER
 	    = new GoCharEscaper(new CharEscaperBuilder()
@@ -773,10 +773,10 @@ public final class CharEscapers {
 	 * Escapes special characters from a string so it can safely be included in a
 	 * Go char literal or string literal.
 	 *
-	 * <p>Note that non-ASCII characters will be octal or Unicode escaped.
+	 * <p>Note that non-ASCII characters will be octal or Unicode escaped.</p>
 	 *
 	 * <p>This is the same as {@link #GO_STRING_ESCAPER}, except that it escapes
-	 * single quotes.
+	 * single quotes.</p>
 	 */
 	private static final CharEscaper GO_CHAR_ESCAPER
 	    = new GoCharEscaper(new CharEscaperBuilder()
