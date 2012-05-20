@@ -166,7 +166,7 @@ public class SoyToGoSrcCompilerExperimental {
         String namespace = namespaceToCode.first;
         String code = namespaceToCode.second;
         String namespaceAsFilename = namespace.replace(".", File.separator);
-        File dirFile = new File(outputPath, namespaceAsFilename);
+        File dirFile = new File(outputPath, "src/" + namespaceAsFilename);
         File outputFile = new File(dirFile, dirFile.getName() + ".go");
         dirFile.mkdirs();
         Files.write(code, outputFile, Charsets.UTF_8);
