@@ -96,7 +96,7 @@ public class GoSrcMain {
     try {
         (new InsertMsgsVisitor(msgBundle, false)).exec(soyTree);
       } catch (EncounteredPluralSelectMsgException e) {
-        throw new SoySyntaxException("JavaSrc backend doesn't support plural/select messages.");
+        throw new SoySyntaxException("GoSrc backend doesn't support plural/select messages.");
       }
 
     apiCallScope.enter();
