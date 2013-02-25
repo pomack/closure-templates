@@ -5,6 +5,7 @@ package soyutil
 
 import (
 	"bytes"
+	"closure/template/soyregexp"
 	"fmt"
 	"io"
 	"regexp"
@@ -35,11 +36,9 @@ var (
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
 	}
 
-	CSS_WORD = regexp.MustCompile(
-		// See http://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
-		// #RULE_.234_-_CSS_Escape_Before_Inserting_Untrusted_Data_into_HTML_Style_Property_Values
-		// for an explanation of why expression and moz-binding are bad.
-		"^(?!-*(?:(expression|(?:moz-)?binding))(?:" +
+	CSS_WORD = soyregexp.MustCompile([]*soyregexp.Regexp{
+		&soyregexp.Regexp{MustMatch: false, RegexpString: "^(-*(?:expression|(?:moz-)?binding))/i"},
+		&soyregexp.Regexp{MustMatch: true, RegexpString: "^(?:" +
 			// A latin class name or ID, CSS identifier, hex color or unicode range.
 			"[.#]?-?(?:[_a-zA-Z0-9-]+)(?:-[_a-zA-Z0-9-]+)*-?|" +
 			// A quantity
@@ -48,8 +47,8 @@ var (
 			"!important|" +
 			// Nothing.
 			"" +
-			")\\z/i",
-	)
+			")\\z/i"},
+	})
 
 	/**
 	 * Loose matcher for HTML tags, DOCTYPEs, and HTML comments.
@@ -76,24 +75,22 @@ var (
 		"^(?:(?:https?|mailto):|[^&:\\/?#]*(?:[\\/?#]|\\z))/i",
 	)
 
-	_FILTER_HTML_ATTRIBUTE_RE = regexp.MustCompile(
-		"^" +
-			// Disallow special attribute names
-			"(?!style|on|action|archive|background|cite|classid|codebase|data|dsync|href" +
-			"|longdesc|src|usemap)" +
+	_FILTER_HTML_ATTRIBUTE_RE = soyregexp.MustCompile([]*soyregexp.Regexp{
+		&soyregexp.Regexp{MustMatch: false, RegexpString: "^" +
+			"(style|on|action|archive|background|cite|classid|codebase|data|dsync|href" +
+			"|longdesc|src|usemap)/i"},
+		&soyregexp.Regexp{MustMatch: true, RegexpString: "^" +
 			"(?:" +
 			// Must match letters
 			"[a-z0-9_$:-]*" +
 			// Match until the end.
-			")\\z/i",
-	)
+			")\\z/i"},
+	})
 
-	_FILTER_HTML_ELEMENT_NAME_RE = regexp.MustCompile(
-		"^" +
-			// Disallow special element names.
-			"(?!script|style|title|textarea|xmp|no)" +
-			"[a-z0-9_$:-]*\\z/i",
-	)
+	_FILTER_HTML_ELEMENT_NAME_RE = soyregexp.MustCompile([]*soyregexp.Regexp{
+		&soyregexp.Regexp{MustMatch: false, RegexpString: "^(script|style|title|textarea|xmp|no)/i"},
+		&soyregexp.Regexp{MustMatch: true, RegexpString: "^[a-z0-9_$:-]*\\z/i"},
+	})
 )
 
 var (
@@ -206,7 +203,7 @@ type defineEscapers interface {
 
 type CrossLanguageStringXform interface {
 	DirectiveName() string
-	ValueFilter() *regexp.Regexp
+	ValueFilter() soyregexp.Matcher
 	NonAsciiPrefix() string
 	Escapes() []Escape
 	Escape(s string) (string, error)
@@ -238,7 +235,7 @@ type CrossLanguageStringXform interface {
  */
 type crossLanguageStringXform struct {
 	directiveName string
-	valueFilter   *regexp.Regexp
+	valueFilter   soyregexp.Matcher
 	jsNames       []string
 	escapes       []Escape
 
@@ -265,7 +262,7 @@ type crossLanguageStringXform struct {
  *     escape non-ASCII code units not in the sparse mapping.
  *     If null, then non-ASCII code units outside the sparse map can appear unescaped.
  */
-func initCrossLanguageStringXform(clsx *crossLanguageStringXform, simpleName string, valueFilter *regexp.Regexp, jsNames []string, nonAsciiPrefix string, escapeDefiner defineEscapers) {
+func initCrossLanguageStringXform(clsx *crossLanguageStringXform, simpleName string, valueFilter soyregexp.Matcher, jsNames []string, nonAsciiPrefix string, escapeDefiner defineEscapers) {
 	// EscapeHtml -> |escapeHtml
 	clsx.directiveName = "|" + strings.ToLower(simpleName[0:1]) + simpleName[1:]
 	clsx.valueFilter = valueFilter
@@ -339,7 +336,7 @@ func (p *crossLanguageStringXform) NonAsciiPrefix() string {
  * Null if the escaper accepts all strings as inputs, or otherwise a regular expression
  * that accepts only strings that can be escaped by this escaper.
  */
-func (p *crossLanguageStringXform) ValueFilter() *regexp.Regexp {
+func (p *crossLanguageStringXform) ValueFilter() soyregexp.Matcher {
 	return p.valueFilter
 }
 
