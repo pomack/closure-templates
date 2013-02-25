@@ -1,9 +1,8 @@
-package soyutil;
+package soyutil
 
 import (
-  "strings"
+	"strings"
 )
-
 
 /**
  * Strips str of any HTML mark-up and escapes. Imprecise in several ways, but
@@ -16,12 +15,11 @@ import (
  * @private
  */
 func BidiStripHtmlIfNecessary(str string, opt_isHtml bool) string {
-  if opt_isHtml {
-    return _BIDI_HTML_SKIP_RE.ReplaceAllString(str, " ")
-  }
-  return str
+	if opt_isHtml {
+		return _BIDI_HTML_SKIP_RE.ReplaceAllString(str, " ")
+	}
+	return str
 }
-
 
 /**
  * Estimate the overall directionality of text. If opt_isHtml, makes sure to
@@ -33,16 +31,15 @@ func BidiStripHtmlIfNecessary(str string, opt_isHtml bool) string {
  * @return {number} 1 if text is LTR, -1 if it is RTL, and 0 if it is neutral.
  */
 func BidiTextDir(text string, opt_isHtml bool) int {
-  text = BidiStripHtmlIfNecessary(text, opt_isHtml);
-  if len(text) == 0 {
-    return 0
-  }
-  if BidiDetectRtlDirectionality(text) {
-    return -1
-  }
-  return 1
-};
-
+	text = BidiStripHtmlIfNecessary(text, opt_isHtml)
+	if len(text) == 0 {
+		return 0
+	}
+	if BidiDetectRtlDirectionality(text) {
+		return -1
+	}
+	return 1
+}
 
 /**
  * Returns "dir=ltr" or "dir=rtl", depending on text's estimated
@@ -59,18 +56,18 @@ func BidiTextDir(text string, opt_isHtml bool) int {
  *     text in non-LTR context; else, the empty string.
  */
 func BidiDirAttr(bidiGlobalDir int, text string, opt_isHtml bool) string {
-  dir := BidiTextDir(text, opt_isHtml)
-  switch {
-  case dir == bidiGlobalDir:
-    return ""
-  case dir < 0:
-    return "dir=rtl"
-  case dir > 0:
-    return "dir=ltr"
-  default:
-    return ""
-  }
-  return ""
+	dir := BidiTextDir(text, opt_isHtml)
+	switch {
+	case dir == bidiGlobalDir:
+		return ""
+	case dir < 0:
+		return "dir=rtl"
+	case dir > 0:
+		return "dir=ltr"
+	default:
+		return ""
+	}
+	return ""
 }
 
 /**
@@ -89,10 +86,9 @@ func BidiDirAttr(bidiGlobalDir int, text string, opt_isHtml bool) string {
  *     bidiGlobalDir.
  */
 func BidiMarkAfter(bidiGlobalDir int, text string, opt_isHtml bool) string {
-  dir := BidiTextDir(text, opt_isHtml)
-  return BidiMarkAfterKnownDir(bidiGlobalDir, dir, text, opt_isHtml)
+	dir := BidiTextDir(text, opt_isHtml)
+	return BidiMarkAfterKnownDir(bidiGlobalDir, dir, text, opt_isHtml)
 }
-
 
 /**
  * Returns a Unicode BiDi mark matching bidiGlobalDir (LRM or RLM) if the
@@ -111,17 +107,16 @@ func BidiMarkAfter(bidiGlobalDir int, text string, opt_isHtml bool) string {
  *     bidiGlobalDir.
  */
 func BidiMarkAfterKnownDir(bidiGlobalDir int, dir int, text string, opt_isHtml bool) string {
-  switch {
-  case bidiGlobalDir > 0 && (dir < 0 || BidiIsRtlExitText(text, opt_isHtml)):
-    return "\u200E" // LRM
-  case bidiGlobalDir < 0 && (dir > 0 || BidiIsLtrExitText(text, opt_isHtml)):
-    return "\u200F" // RLM
-  default:
-    return ""
-  }
-  return ""
+	switch {
+	case bidiGlobalDir > 0 && (dir < 0 || BidiIsRtlExitText(text, opt_isHtml)):
+		return "\u200E" // LRM
+	case bidiGlobalDir < 0 && (dir > 0 || BidiIsLtrExitText(text, opt_isHtml)):
+		return "\u200F" // RLM
+	default:
+		return ""
+	}
+	return ""
 }
-
 
 /**
  * Returns str wrapped in a <span dir=ltr|rtl> according to its directionality -
@@ -137,20 +132,19 @@ func BidiMarkAfterKnownDir(bidiGlobalDir int, dir int, text string, opt_isHtml b
  * @return {string} The wrapped string.
  */
 func BidiSpanWrap(bidiGlobalDir int, str string, isHtml bool) string {
-  var output string
-  textDir := BidiTextDir(str, isHtml)
-  reset := BidiMarkAfterKnownDir(bidiGlobalDir, textDir, str, isHtml)
-  switch {
-  case textDir > 0 && bidiGlobalDir <= 0:
-    output = "<span dir=\"ltr\">" + str + "</span>"
-  case textDir < 0 && bidiGlobalDir >= 0:
-    output = "<span dir=\"rtl\">" + str + "</span>"
-  default:
-    output = str
-  }
-  return output + reset
+	var output string
+	textDir := BidiTextDir(str, isHtml)
+	reset := BidiMarkAfterKnownDir(bidiGlobalDir, textDir, str, isHtml)
+	switch {
+	case textDir > 0 && bidiGlobalDir <= 0:
+		output = "<span dir=\"ltr\">" + str + "</span>"
+	case textDir < 0 && bidiGlobalDir >= 0:
+		output = "<span dir=\"rtl\">" + str + "</span>"
+	default:
+		output = str
+	}
+	return output + reset
 }
-
 
 /**
  * Returns str wrapped in Unicode BiDi formatting characters according to its
@@ -167,20 +161,19 @@ func BidiSpanWrap(bidiGlobalDir int, str string, isHtml bool) string {
  * @return {string} The wrapped string.
  */
 func BidiUnicodeWrap(bidiGlobalDir int, str string, isHtml bool) string {
-  var output string
-  textDir := BidiTextDir(str, isHtml)
-  reset := BidiMarkAfterKnownDir(bidiGlobalDir, textDir, str, isHtml)
-  switch {
-  case textDir > 0 && bidiGlobalDir <= 0:
-    output = "\u202A" + str + "\u202C"
-  case textDir < 0 && bidiGlobalDir >= 0:
-    output = "\u202B" + str + "\u202C"
-  default:
-    output = str
-  }
-  return output + reset
+	var output string
+	textDir := BidiTextDir(str, isHtml)
+	reset := BidiMarkAfterKnownDir(bidiGlobalDir, textDir, str, isHtml)
+	switch {
+	case textDir > 0 && bidiGlobalDir <= 0:
+		output = "\u202A" + str + "\u202C"
+	case textDir < 0 && bidiGlobalDir >= 0:
+		output = "\u202B" + str + "\u202C"
+	default:
+		output = str
+	}
+	return output + reset
 }
-
 
 /**
  * Check the directionality of the a piece of text based on the first character
@@ -190,9 +183,8 @@ func BidiUnicodeWrap(bidiGlobalDir int, str string, isHtml bool) string {
  * @private
  */
 func BidiIsRtlText(str string) bool {
-  return _BIDI_RTL_DIR_CHECK_RE.MatchString(str)
+	return _BIDI_RTL_DIR_CHECK_RE.MatchString(str)
 }
-
 
 /**
  * Check the directionality of the a piece of text based on the first character
@@ -202,9 +194,8 @@ func BidiIsRtlText(str string) bool {
  * @private
  */
 func BidiIsNeutralText(str string) bool {
-  return _BIDI_NEUTRAL_DIR_CHECK_RE.MatchString(str)
+	return _BIDI_NEUTRAL_DIR_CHECK_RE.MatchString(str)
 }
-
 
 /**
  * Returns the RTL ratio based on word count.
@@ -213,23 +204,22 @@ func BidiIsNeutralText(str string) bool {
  * @private
  */
 func BidiRtlWordRatio(str string) float64 {
-  rtlCount := 0
-  totalCount := 0
-  tokens := strings.SplitN(str, " ", -1)
-  for _, token := range tokens {
-    if BidiIsRtlText(token) {
-      rtlCount++
-      totalCount++
-    } else if BidiIsNeutralText(token) {
-      totalCount++
-    }
-  }
-  if totalCount == 0 {
-    return 0
-  }
-  return float64(rtlCount) / float64(totalCount)
+	rtlCount := 0
+	totalCount := 0
+	tokens := strings.SplitN(str, " ", -1)
+	for _, token := range tokens {
+		if BidiIsRtlText(token) {
+			rtlCount++
+			totalCount++
+		} else if BidiIsNeutralText(token) {
+			totalCount++
+		}
+	}
+	if totalCount == 0 {
+		return 0
+	}
+	return float64(rtlCount) / float64(totalCount)
 }
-
 
 /**
  * Check the directionality of a piece of text, return true if the piece of
@@ -239,9 +229,8 @@ func BidiRtlWordRatio(str string) float64 {
  * @private
  */
 func BidiDetectRtlDirectionality(str string) bool {
-  return BidiRtlWordRatio(str) > _BIDI_RTL_DETECTION_THRESHOLD
+	return BidiRtlWordRatio(str) > _BIDI_RTL_DETECTION_THRESHOLD
 }
-
 
 /**
  * Check if the exit directionality a piece of text is LTR, i.e. if the last
@@ -253,10 +242,9 @@ func BidiDetectRtlDirectionality(str string) bool {
  * @private
  */
 func BidiIsLtrExitText(str string, opt_isHtml bool) bool {
-  testString := BidiStripHtmlIfNecessary(str, opt_isHtml)
-  return _BIDI_LTR_EXIT_DIR_CHECK_RE.MatchString(testString)
+	testString := BidiStripHtmlIfNecessary(str, opt_isHtml)
+	return _BIDI_LTR_EXIT_DIR_CHECK_RE.MatchString(testString)
 }
-
 
 /**
  * Check if the exit directionality a piece of text is RTL, i.e. if the last
@@ -268,9 +256,6 @@ func BidiIsLtrExitText(str string, opt_isHtml bool) bool {
  * @private
  */
 func BidiIsRtlExitText(str string, opt_isHtml bool) bool {
-  testString := BidiStripHtmlIfNecessary(str, opt_isHtml)
-  return _BIDI_RTL_EXIT_DIR_CHECK_RE.MatchString(testString)
+	testString := BidiStripHtmlIfNecessary(str, opt_isHtml)
+	return _BIDI_RTL_EXIT_DIR_CHECK_RE.MatchString(testString)
 }
-
-
-
